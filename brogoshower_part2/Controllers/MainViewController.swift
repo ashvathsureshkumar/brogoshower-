@@ -33,8 +33,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private let takePictureButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("📸 Take Shower Picture", for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 18)
+        button.setTitle("📸 YEET A SHOWER PIC 💦", for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
         button.backgroundColor = UIColor.systemBlue
         button.setTitleColor(.white, for: .normal)
         button.layer.cornerRadius = 12
@@ -51,6 +51,16 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
+    
+    private let statusLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        label.textAlignment = .center
+        label.textColor = .darkGray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.numberOfLines = 2
+        return label
+    }()
 
     private var showerData: [String] = []
     private var monthData: [Date?] = []
@@ -59,18 +69,20 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        title = "BrogoShower"
+        title = "🚿 BrogoShower 💪"
         setupViews()
         setupNavigationBar()
         loadProfileInfo()
         fetchShowerData()
         setupCalendar()
+        updateStatusLabel()
     }
     
     private func setupCalendar() {
         updateMonthLabel()
         setupMonthData()
         collectionView.reloadData()
+        updateStatusLabel()
     }
     
     private func setupMonthData() {
@@ -107,16 +119,17 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
     
     private func setupNavigationBar() {
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(handleLogout))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "✌️ Logout", style: .plain, target: self, action: #selector(handleLogout))
         
-        let previousButton = UIBarButtonItem(title: "<", style: .plain, target: self, action: #selector(goToPreviousMonth))
-        let nextButton = UIBarButtonItem(title: ">", style: .plain, target: self, action: #selector(goToNextMonth))
+        let previousButton = UIBarButtonItem(title: "⬅️", style: .plain, target: self, action: #selector(goToPreviousMonth))
+        let nextButton = UIBarButtonItem(title: "➡️", style: .plain, target: self, action: #selector(goToNextMonth))
         navigationItem.leftBarButtonItems = [previousButton, nextButton]
     }
 
     private func setupViews() {
         view.addSubview(emailLabel)
         view.addSubview(monthLabel)
+        view.addSubview(statusLabel)
         view.addSubview(weekdaysStackView)
         view.addSubview(collectionView)
         view.addSubview(takePictureButton)
@@ -127,10 +140,15 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             emailLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             emailLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            monthLabel.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 20),
+            monthLabel.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 15),
             monthLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            weekdaysStackView.topAnchor.constraint(equalTo: monthLabel.bottomAnchor, constant: 10),
+            statusLabel.topAnchor.constraint(equalTo: monthLabel.bottomAnchor, constant: 8),
+            statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            statusLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            weekdaysStackView.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 15),
             weekdaysStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             weekdaysStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
@@ -150,11 +168,11 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         for view in weekdaysStackView.arrangedSubviews {
             view.removeFromSuperview()
         }
-        let weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        let weekdays = ["☀️", "🌙", "💫", "⭐", "🔥", "🎉", "😴"]
         for day in weekdays {
             let label = UILabel()
             label.text = day
-            label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+            label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
             label.textAlignment = .center
             weekdaysStackView.addArrangedSubview(label)
         }
@@ -163,7 +181,39 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     private func updateMonthLabel() {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMMM yyyy"
-        monthLabel.text = dateFormatter.string(from: currentDate)
+        monthLabel.text = "🗓️ " + dateFormatter.string(from: currentDate) + " 🗓️"
+    }
+    
+    private func updateStatusLabel() {
+        let currentMonthShowers = getCurrentMonthShowerCount()
+        let totalShowers = showerData.count
+        
+        if currentMonthShowers == 0 {
+            statusLabel.text = "💀 NO SHOWERS THIS MONTH 💀\nSTINKY LEVEL: MAXIMUM 🤢"
+        } else if currentMonthShowers < 5 {
+            statusLabel.text = "🦨 ONLY \(currentMonthShowers) SHOWERS THIS MONTH\nSTILL PRETTY STINKY NGL 😬"
+        } else if currentMonthShowers < 15 {
+            statusLabel.text = "🧼 \(currentMonthShowers) SHOWERS - NOT BAD!\nCLEAN VIBES ACTIVATED ✨"
+        } else {
+            statusLabel.text = "🏆 \(currentMonthShowers) SHOWERS - ABSOLUTE UNIT!\nCLEANEST BRO ALIVE 👑"
+        }
+    }
+    
+    private func getCurrentMonthShowerCount() -> Int {
+        let calendar = Calendar.current
+        let currentMonth = calendar.component(.month, from: currentDate)
+        let currentYear = calendar.component(.year, from: currentDate)
+        
+        return showerData.filter { dateString in
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            guard let date = formatter.date(from: dateString) else { return false }
+            
+            let month = calendar.component(.month, from: date)
+            let year = calendar.component(.year, from: date)
+            
+            return month == currentMonth && year == currentYear
+        }.count
     }
 
     @objc private func goToPreviousMonth() {
@@ -178,15 +228,16 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private func loadProfileInfo() {
         if let currentUser = AuthService.shared.getCurrentUser() {
-            emailLabel.text = currentUser
+            emailLabel.text = "🧑‍💻 " + currentUser
         } else {
-            emailLabel.text = "Not logged in"
+            emailLabel.text = "👻 WHO ARE YOU??"
         }
     }
 
     private func fetchShowerData() {
         showerData = OpenAIService.shared.getShowerData()
         collectionView.reloadData()
+        updateStatusLabel()
     }
     
     @objc private func handleTakePicture() {
@@ -208,28 +259,28 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     private func showSimulatorAlert() {
         let alert = UIAlertController(
-            title: "Simulator Detected",
-            message: "Camera functionality is not available in the iOS Simulator. Please run this app on a physical device to test the camera features.",
+            title: "🤖 SIMULATOR DETECTED",
+            message: "Bruh, you can't take pics in the simulator! 📱 Get a real phone and try again 😤",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "😔 Fine", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
     
     private func showCameraUnavailableAlert() {
         let alert = UIAlertController(
-            title: "Camera Unavailable",
-            message: "The camera is not available on this device.",
+            title: "📷 CAMERA BROKE",
+            message: "Your camera is more broken than my sleep schedule 💀",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "😭 RIP", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
     
     @objc private func handleLogout() {
-        let alert = UIAlertController(title: "Logout", message: "Are you sure you want to logout?", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: "Logout", style: .destructive) { _ in
+        let alert = UIAlertController(title: "🚪 LEAVING SO SOON?", message: "You sure you wanna dip? Your shower streak is counting on you! 🏃‍♂️💨", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "🔙 Nah, I'll stay", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "✌️ Peace out", style: .destructive) { _ in
             AuthService.shared.logout()
             self.navigateToLogin()
         })
@@ -286,8 +337,13 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
 
     private func showAnalysisResult(_ result: String) {
-        let alert = UIAlertController(title: "Analysis Result", message: result, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        let title = result.contains("Showered") ? "🎉 SHOWER DETECTED!" : "🤔 HMMMM..."
+        let message = result.contains("Showered") ? 
+            "YOOO YOU ACTUALLY SHOWERED! 🚿✨\nRespect the hygiene game! 💪" : 
+            "That doesn't look like a shower to me chief... 🧐\nTry again with actual shower evidence! 📸"
+        
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "💯 Got it", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
 
