@@ -8,6 +8,8 @@ class CalendarCell: UICollectionViewCell {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.layer.cornerRadius = 2.0
         view.layer.masksToBounds = true
+        view.layer.borderWidth = 1.0
+        view.layer.borderColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0).cgColor
         return view
     }()
     
@@ -16,10 +18,10 @@ class CalendarCell: UICollectionViewCell {
         contentView.addSubview(colorView)
         
         NSLayoutConstraint.activate([
-            colorView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            colorView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
-            colorView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
-            colorView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            colorView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 1),
+            colorView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 1),
+            colorView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -1),
+            colorView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -1)
         ])
     }
     
@@ -31,12 +33,11 @@ class CalendarCell: UICollectionViewCell {
         colorView.backgroundColor = color
         
         if isToday {
-            contentView.layer.borderColor = UIColor.darkGray.cgColor
-            contentView.layer.borderWidth = 1.0
-            contentView.layer.cornerRadius = 2.0
+            colorView.layer.borderColor = UIColor.black.cgColor
+            colorView.layer.borderWidth = 1.5
         } else {
-            contentView.layer.borderWidth = 0
-            contentView.layer.borderColor = UIColor.clear.cgColor
+            colorView.layer.borderColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0).cgColor
+            colorView.layer.borderWidth = 1.0
         }
     }
 } 

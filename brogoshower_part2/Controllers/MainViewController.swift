@@ -1,85 +1,16 @@
 import UIKit
 
-// Custom layout for GitHub-style contribution graph
-class GitHubContributionLayout: UICollectionViewLayout {
-    private var layoutAttributes: [UICollectionViewLayoutAttributes] = []
-    private let itemSize: CGSize = CGSize(width: 11, height: 11)
-    private let spacing: CGFloat = 3
-    private let numberOfRows: Int = 7 // Days of the week
-    
-    override func prepare() {
-        super.prepare()
-        layoutAttributes.removeAll()
-        
-        guard let collectionView = collectionView else { return }
-        
-        let numberOfItems = collectionView.numberOfItems(inSection: 0)
-        let numberOfColumns = (numberOfItems + numberOfRows - 1) / numberOfRows
-        
-        for item in 0..<numberOfItems {
-            let indexPath = IndexPath(item: item, section: 0)
-            let attributes = UICollectionViewLayoutAttributes(forCellWith: indexPath)
-            
-            let column = item / numberOfRows
-            let row = item % numberOfRows
-            
-            let x = CGFloat(column) * (itemSize.width + spacing)
-            let y = CGFloat(row) * (itemSize.height + spacing)
-            
-            attributes.frame = CGRect(x: x, y: y, width: itemSize.width, height: itemSize.height)
-            layoutAttributes.append(attributes)
-        }
-    }
-    
-    override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        return layoutAttributes.filter { $0.frame.intersects(rect) }
-    }
-    
-    override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        return layoutAttributes[indexPath.item]
-    }
-    
-    override var collectionViewContentSize: CGSize {
-        guard let collectionView = collectionView else { return .zero }
-        let numberOfItems = collectionView.numberOfItems(inSection: 0)
-        let numberOfColumns = (numberOfItems + numberOfRows - 1) / numberOfRows
-        
-        let width = CGFloat(numberOfColumns) * itemSize.width + CGFloat(numberOfColumns - 1) * spacing
-        let height = CGFloat(numberOfRows) * itemSize.height + CGFloat(numberOfRows - 1) * spacing
-        
-        return CGSize(width: width, height: height)
-    }
-}
+class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
-class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-
-    private let titleLabel: UILabel = {
+    private let monthLabel: UILabel = {
         let label = UILabel()
-        label.text = "🚿 Shower Streak"
         label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
-    private let emailLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 16, weight: .regular)
-        label.textAlignment = .center
-        label.textColor = .gray
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let contributionStatsLabel: UILabel = {
-        let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
-        label.textColor = .darkGray
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
-    private let monthsStackView: UIStackView = {
+
+    private let weekdaysStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.distribution = .fillEqually
@@ -87,26 +18,16 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         return stackView
     }()
     
-    private let daysStackView: UIStackView = {
-        let stackView = UIStackView()
-        stackView.axis = .vertical
-        stackView.distribution = .fillEqually
-        stackView.spacing = 3
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        return stackView
-    }()
-
     private lazy var collectionView: UICollectionView = {
-        let layout = GitHubContributionLayout()
+        let layout = UICollectionViewFlowLayout()
+        layout.minimumLineSpacing = 0
+        layout.minimumInteritemSpacing = 0
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(CalendarCell.self, forCellWithReuseIdentifier: CalendarCell.reuseIdentifier)
         collectionView.backgroundColor = .clear
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.isScrollEnabled = true
-        collectionView.showsHorizontalScrollIndicator = false
-        collectionView.showsVerticalScrollIndicator = false
         return collectionView
     }()
 
@@ -121,129 +42,138 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         button.addTarget(self, action: #selector(handleTakePicture), for: .touchUpInside)
         return button
     }()
+    
+    private let emailLabel: UILabel = {
+        let label = UILabel()
+        label.font = UIFont.systemFont(ofSize: 16, weight: .regular)
+        label.textAlignment = .center
+        label.textColor = .gray
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
 
     private var showerData: [String] = []
-    private var yearData: [Date] = []
+    private var monthData: [Date?] = []
+    private var currentDate: Date = Date()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
         title = "BrogoShower"
-        setupYearData()
         setupViews()
         setupNavigationBar()
         loadProfileInfo()
         fetchShowerData()
+        setupCalendar()
     }
     
-    private func setupYearData() {
-        var calendar = Calendar.current
-        calendar.firstWeekday = 1 // Sunday
-        let today = Date()
-        guard let oneYearAgo = calendar.date(byAdding: .year, value: -1, to: today) else { return }
-
-        // Get all dates from one year ago to today
-        var dates: [Date] = []
-        var currentDate = oneYearAgo
-        while currentDate <= today {
-            dates.append(currentDate)
-            currentDate = calendar.date(byAdding: .day, value: 1, to: currentDate)!
-        }
+    private func setupCalendar() {
+        updateMonthLabel()
+        setupMonthData()
+        collectionView.reloadData()
+    }
+    
+    private func setupMonthData() {
+        monthData.removeAll()
         
-        // Pad start to the beginning of the week (Sunday)
-        if let firstDate = dates.first {
-            let weekdayOfFirstDate = calendar.component(.weekday, from: firstDate) // 1 = Sunday
-            let daysToPrepend = weekdayOfFirstDate - calendar.firstWeekday
-            if daysToPrepend > 0 {
-                for _ in 0..<daysToPrepend {
-                    dates.insert(Date.distantPast, at: 0)
-                }
+        let calendar = Calendar.current
+        var calendarForMonth = calendar
+        calendarForMonth.firstWeekday = 1 // Sunday
+        
+        guard let monthRange = calendarForMonth.range(of: .day, in: .month, for: currentDate) else { return }
+        let firstDayOfMonth = calendarForMonth.date(from: calendarForMonth.dateComponents([.year, .month], from: currentDate))!
+        let firstWeekday = calendarForMonth.component(.weekday, from: firstDayOfMonth)
+        
+        let daysToPrepend = firstWeekday - calendarForMonth.firstWeekday
+        if daysToPrepend > 0 {
+            for _ in 0..<daysToPrepend {
+                monthData.append(nil)
             }
         }
         
-        // Pad end to the end of the week (Saturday)
-        while dates.count % 7 != 0 {
-            dates.append(Date.distantPast)
+        for day in monthRange {
+            let date = calendarForMonth.date(byAdding: .day, value: day - 1, to: firstDayOfMonth)!
+            monthData.append(date)
         }
         
-        self.yearData = dates
+        let cellsToFill = 35 // 7x5 grid
+        while monthData.count < cellsToFill {
+            monthData.append(nil)
+        }
+        
+        if monthData.count > cellsToFill {
+            monthData = Array(monthData.prefix(cellsToFill))
+        }
     }
     
     private func setupNavigationBar() {
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(handleLogout))
+        
+        let previousButton = UIBarButtonItem(title: "<", style: .plain, target: self, action: #selector(goToPreviousMonth))
+        let nextButton = UIBarButtonItem(title: ">", style: .plain, target: self, action: #selector(goToNextMonth))
+        navigationItem.leftBarButtonItems = [previousButton, nextButton]
     }
 
     private func setupViews() {
-        view.addSubview(titleLabel)
         view.addSubview(emailLabel)
-        view.addSubview(contributionStatsLabel)
-        view.addSubview(monthsStackView)
-        view.addSubview(daysStackView)
+        view.addSubview(monthLabel)
+        view.addSubview(weekdaysStackView)
         view.addSubview(collectionView)
         view.addSubview(takePictureButton)
         
-        setupMonthLabels()
-        setupDayLabels()
+        setupWeekdayLabels()
 
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
-            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-
-            emailLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 10),
+            emailLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
             emailLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            
-            contributionStatsLabel.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 20),
-            contributionStatsLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            
-            monthsStackView.topAnchor.constraint(equalTo: contributionStatsLabel.bottomAnchor, constant: 15),
-            monthsStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 70),
-            monthsStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            monthsStackView.heightAnchor.constraint(equalToConstant: 20),
-            
-            daysStackView.topAnchor.constraint(equalTo: monthsStackView.bottomAnchor, constant: 5),
-            daysStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            daysStackView.widthAnchor.constraint(equalToConstant: 45),
-            
-            collectionView.topAnchor.constraint(equalTo: monthsStackView.bottomAnchor, constant: 5),
-            collectionView.leadingAnchor.constraint(equalTo: daysStackView.trailingAnchor, constant: 5),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            collectionView.heightAnchor.constraint(equalToConstant: 95),
 
-            takePictureButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 40),
+            monthLabel.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 20),
+            monthLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            
+            weekdaysStackView.topAnchor.constraint(equalTo: monthLabel.bottomAnchor, constant: 10),
+            weekdaysStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            weekdaysStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            collectionView.topAnchor.constraint(equalTo: weekdaysStackView.bottomAnchor, constant: 5),
+            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            collectionView.heightAnchor.constraint(equalTo: collectionView.widthAnchor, multiplier: 5.0/7.0),
+
+            takePictureButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 20),
             takePictureButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             takePictureButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             takePictureButton.heightAnchor.constraint(equalToConstant: 55)
         ])
     }
     
-    private func setupMonthLabels() {
-        let months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-        
-        for month in months {
+    private func setupWeekdayLabels() {
+        for view in weekdaysStackView.arrangedSubviews {
+            view.removeFromSuperview()
+        }
+        let weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+        for day in weekdays {
             let label = UILabel()
-            label.text = month
-            label.font = UIFont.systemFont(ofSize: 12)
-            label.textColor = .gray
-            label.textAlignment = .left
-            monthsStackView.addArrangedSubview(label)
+            label.text = day
+            label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+            label.textAlignment = .center
+            weekdaysStackView.addArrangedSubview(label)
         }
     }
     
-    private func setupDayLabels() {
-        for view in daysStackView.arrangedSubviews {
-            view.removeFromSuperview()
-        }
-        
-        // Corresponds to Sun, Mon, Tue, Wed, Thu, Fri, Sat
-        let daySymbols = ["", "Mon", "", "Wed", "", "Fri", ""]
-        for day in daySymbols {
-            let label = UILabel()
-            label.text = day
-            label.font = UIFont.systemFont(ofSize: 12)
-            label.textColor = .gray
-            label.textAlignment = .left
-            daysStackView.addArrangedSubview(label)
-        }
+    private func updateMonthLabel() {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMMM yyyy"
+        monthLabel.text = dateFormatter.string(from: currentDate)
+    }
+
+    @objc private func goToPreviousMonth() {
+        currentDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
+        setupCalendar()
+    }
+
+    @objc private func goToNextMonth() {
+        currentDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate)!
+        setupCalendar()
     }
 
     private func loadProfileInfo() {
@@ -256,23 +186,15 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private func fetchShowerData() {
         showerData = OpenAIService.shared.getShowerData()
-        updateContributionStats()
         collectionView.reloadData()
     }
     
-    private func updateContributionStats() {
-        let count = showerData.count
-        contributionStatsLabel.text = "\(count) showers in the last year"
-    }
-
     @objc private func handleTakePicture() {
-        // Check if running on simulator
         #if targetEnvironment(simulator)
         showSimulatorAlert()
         return
         #endif
         
-        // Check if camera is available
         guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
             showCameraUnavailableAlert()
             return
@@ -286,8 +208,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     private func showSimulatorAlert() {
         let alert = UIAlertController(
-            title: "Simulator Detected", 
-            message: "Camera functionality is not available in the iOS Simulator. Please run this app on a physical device to test the camera features.", 
+            title: "Simulator Detected",
+            message: "Camera functionality is not available in the iOS Simulator. Please run this app on a physical device to test the camera features.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
@@ -296,8 +218,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     private func showCameraUnavailableAlert() {
         let alert = UIAlertController(
-            title: "Camera Unavailable", 
-            message: "The camera is not available on this device.", 
+            title: "Camera Unavailable",
+            message: "The camera is not available on this device.",
             preferredStyle: .alert
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
@@ -320,8 +242,6 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         navigationController.modalPresentationStyle = .fullScreen
         present(navigationController, animated: true, completion: nil)
     }
-
-    // MARK: - UIImagePickerControllerDelegate
 
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         picker.dismiss(animated: true, completion: nil)
@@ -371,36 +291,40 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         present(alert, animated: true, completion: nil)
     }
 
-    // MARK: - UICollectionViewDataSource
-
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return yearData.count
+        return monthData.count
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CalendarCell.reuseIdentifier, for: indexPath) as! CalendarCell
         
-        let date = yearData[indexPath.item]
+        let date = monthData[indexPath.item]
         
-        if date == Date.distantPast {
-            cell.configure(with: .clear)
-        } else {
+        if let date = date {
             let isToday = Calendar.current.isDateInToday(date)
             let formatter = DateFormatter()
             formatter.dateFormat = "yyyy-MM-dd"
             let dateString = formatter.string(from: date)
             
             if showerData.contains(dateString) {
-                cell.configure(with: .systemBlue, isToday: isToday)
+                // GitHub green for shower days
+                cell.configure(with: UIColor(red: 0.16, green: 0.68, blue: 0.38, alpha: 1.0), isToday: isToday)
             } else {
-                cell.configure(with: UIColor(white: 0.9, alpha: 1.0), isToday: isToday)
+                // Light gray for no shower days (GitHub style)
+                cell.configure(with: UIColor(red: 0.93, green: 0.93, blue: 0.93, alpha: 1.0), isToday: isToday)
             }
+        } else {
+            // Transparent for empty cells
+            cell.configure(with: .clear)
         }
         
         return cell
     }
-
-    // MARK: - Helper Methods
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let width = collectionView.frame.width / 7
+        return CGSize(width: width, height: width)
+    }
 
     private func saveShowerDate(_ date: Date) {
         let formatter = DateFormatter()
@@ -411,7 +335,6 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             showerData.append(dateString)
             UserDefaults.standard.set(showerData, forKey: "shower_dates")
             collectionView.reloadData()
-            updateContributionStats()
         }
     }
 } 
