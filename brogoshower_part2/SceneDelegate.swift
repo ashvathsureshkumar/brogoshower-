@@ -20,6 +20,10 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         window = UIWindow(windowScene: windowScene)
         
+        // For testing onboarding, always clear any existing login state
+        // Remove this line after testing to restore normal behavior
+        AuthService.shared.logout()
+        
         // Check if user is already logged in
         let rootViewController: UIViewController
         if AuthService.shared.isLoggedIn() {
@@ -27,9 +31,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let mainViewController = MainViewController()
             rootViewController = UINavigationController(rootViewController: mainViewController)
         } else {
-            // User not logged in, show login screen
-            let loginViewController = LoginViewController()
-            rootViewController = UINavigationController(rootViewController: loginViewController)
+            // User not logged in, show welcome/onboarding flow
+            let welcomeViewController = WelcomeViewController()
+            rootViewController = UINavigationController(rootViewController: welcomeViewController)
         }
         
         window?.rootViewController = rootViewController
