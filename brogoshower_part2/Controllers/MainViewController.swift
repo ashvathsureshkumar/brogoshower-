@@ -320,8 +320,14 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             return
         }
 
+        // Show loading animation
+        showAnalysisLoadingAnimation()
+
         OpenAIService.shared.analyzeImage(image: imageData) { [weak self] result in
             DispatchQueue.main.async {
+                // Hide loading animation
+                self?.hideAnalysisLoadingAnimation()
+                
                 switch result {
                 case .success(let analysis):
                     if analysis.contains("Showered") {
@@ -335,6 +341,140 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
                     self?.showAnalysisResult("Error: \(error.localizedDescription)")
                 }
             }
+        }
+    }
+    
+    private var analysisLoadingOverlay: UIView?
+    
+    private func showAnalysisLoadingAnimation() {
+        // Remove any existing overlay
+        hideAnalysisLoadingAnimation()
+        
+        // Create overlay view
+        let overlayView = UIView()
+        overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        overlayView.alpha = 0
+        overlayView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(overlayView)
+        
+        // Create loading container
+        let loadingContainer = UIView()
+        loadingContainer.backgroundColor = .systemBackground
+        loadingContainer.layer.cornerRadius = 20
+        loadingContainer.layer.shadowColor = UIColor.black.cgColor
+        loadingContainer.layer.shadowOffset = CGSize(width: 0, height: 10)
+        loadingContainer.layer.shadowRadius = 20
+        loadingContainer.layer.shadowOpacity = 0.2
+        loadingContainer.translatesAutoresizingMaskIntoConstraints = false
+        loadingContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        loadingContainer.alpha = 0
+        overlayView.addSubview(loadingContainer)
+        
+        // Create AI icon
+        let aiIconContainer = UIView()
+        aiIconContainer.backgroundColor = UIColor.systemBlue
+        aiIconContainer.layer.cornerRadius = 30
+        aiIconContainer.translatesAutoresizingMaskIntoConstraints = false
+        loadingContainer.addSubview(aiIconContainer)
+        
+        let aiIcon = UIImageView(image: UIImage(systemName: "brain.head.profile"))
+        aiIcon.tintColor = .white
+        aiIcon.contentMode = .scaleAspectFit
+        aiIcon.translatesAutoresizingMaskIntoConstraints = false
+        aiIconContainer.addSubview(aiIcon)
+        
+        // Create spinner
+        let spinner = UIActivityIndicatorView(style: .medium)
+        spinner.color = .systemBlue
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        spinner.startAnimating()
+        loadingContainer.addSubview(spinner)
+        
+        // Create text labels
+        let titleLabel = UILabel()
+        titleLabel.text = "AI Analysis"
+        titleLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        titleLabel.textAlignment = .center
+        titleLabel.textColor = .label
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        loadingContainer.addSubview(titleLabel)
+        
+        let subtitleLabel = UILabel()
+        subtitleLabel.text = "Analyzing your photo with AI..."
+        subtitleLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        subtitleLabel.textAlignment = .center
+        subtitleLabel.textColor = .secondaryLabel
+        subtitleLabel.numberOfLines = 2
+        subtitleLabel.translatesAutoresizingMaskIntoConstraints = false
+        loadingContainer.addSubview(subtitleLabel)
+        
+        // Setup constraints
+        NSLayoutConstraint.activate([
+            overlayView.topAnchor.constraint(equalTo: view.topAnchor),
+            overlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            overlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            overlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            loadingContainer.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
+            loadingContainer.centerYAnchor.constraint(equalTo: overlayView.centerYAnchor),
+            loadingContainer.widthAnchor.constraint(equalToConstant: 300),
+            loadingContainer.heightAnchor.constraint(equalToConstant: 180),
+            
+            aiIconContainer.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
+            aiIconContainer.topAnchor.constraint(equalTo: loadingContainer.topAnchor, constant: 20),
+            aiIconContainer.widthAnchor.constraint(equalToConstant: 60),
+            aiIconContainer.heightAnchor.constraint(equalToConstant: 60),
+            
+            aiIcon.centerXAnchor.constraint(equalTo: aiIconContainer.centerXAnchor),
+            aiIcon.centerYAnchor.constraint(equalTo: aiIconContainer.centerYAnchor),
+            aiIcon.widthAnchor.constraint(equalToConstant: 30),
+            aiIcon.heightAnchor.constraint(equalToConstant: 30),
+            
+            spinner.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
+            spinner.topAnchor.constraint(equalTo: aiIconContainer.bottomAnchor, constant: 16),
+            
+            titleLabel.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
+            titleLabel.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: 12),
+            titleLabel.leadingAnchor.constraint(equalTo: loadingContainer.leadingAnchor, constant: 16),
+            titleLabel.trailingAnchor.constraint(equalTo: loadingContainer.trailingAnchor, constant: -16),
+            
+            subtitleLabel.centerXAnchor.constraint(equalTo: loadingContainer.centerXAnchor),
+            subtitleLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 6),
+            subtitleLabel.leadingAnchor.constraint(equalTo: loadingContainer.leadingAnchor, constant: 16),
+            subtitleLabel.trailingAnchor.constraint(equalTo: loadingContainer.trailingAnchor, constant: -16),
+            subtitleLabel.bottomAnchor.constraint(lessThanOrEqualTo: loadingContainer.bottomAnchor, constant: -16)
+        ])
+        
+        // Store reference
+        analysisLoadingOverlay = overlayView
+        
+        // Animate in
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseOut], animations: {
+            overlayView.alpha = 1
+            loadingContainer.alpha = 1
+            loadingContainer.transform = CGAffineTransform.identity
+        })
+        
+        // Add pulsing animation to AI icon
+        let pulseAnimation = CABasicAnimation(keyPath: "transform.scale")
+        pulseAnimation.duration = 1.5
+        pulseAnimation.fromValue = 1.0
+        pulseAnimation.toValue = 1.1
+        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        pulseAnimation.autoreverses = true
+        pulseAnimation.repeatCount = .infinity
+        aiIconContainer.layer.add(pulseAnimation, forKey: "pulse")
+    }
+    
+    private func hideAnalysisLoadingAnimation() {
+        guard let overlay = analysisLoadingOverlay else { return }
+        
+        UIView.animate(withDuration: 0.2, animations: {
+            overlay.alpha = 0
+            overlay.subviews.first?.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+        }) { _ in
+            overlay.removeFromSuperview()
+            self.analysisLoadingOverlay = nil
         }
     }
     
@@ -475,8 +615,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             let dateString = formatter.string(from: date)
             
             if showerData.contains(dateString) {
-                // Green for shower days
-                cell.configure(with: UIColor.systemGreen, isToday: isToday)
+                // Blue for shower days
+                cell.configure(with: UIColor.systemBlue, isToday: isToday)
             } else {
                 // Light gray for no shower days
                 cell.configure(with: UIColor.systemGray5, isToday: isToday)

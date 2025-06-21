@@ -60,44 +60,107 @@ class OpenAIService {
     private let openAI: OpenAI
 
     private init() {
-        let apiKey = "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"
+        let apiKey = "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"
         self.openAI = OpenAI(apiToken: apiKey)
     }
 
     func analyzeImage(image: Data, completion: @escaping (Result<String, Error>) -> Void) {
-        let query = ChatQuery(
-            messages: [
-                .user(.init(content: .string("Analyze this image and respond with either 'Showered' or 'Not Showered'")))
+        let base64Image = image.base64EncodedString()
+        
+        // Use direct REST API call since the SDK doesn't properly support vision
+        guard let url = URL(string: "https://api.openai.com/v1/chat/completions") else {
+            completion(.failure(NSError(domain: "OpenAIError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(getAPIKey())", forHTTPHeaderField: "Authorization")
+        
+        let requestBody: [String: Any] = [
+            "model": "gpt-4o",
+            "messages": [
+                [
+                    "role": "user",
+                    "content": [
+                        [
+                            "type": "text",
+                            "text": "Analyze this mobile photo and determine if someone is taking a shower. Look for: running water from showerhead, wet hair, steam/fog, shower curtain/door, bathroom tiles with water, soap/shampoo use, water droplets, person in shower position. Output only 'Showered' or 'Not Showered'."
+                        ],
+                        [
+                            "type": "image_url",
+                            "image_url": [
+                                "url": "data:image/png;base64,\(base64Image)"
+                            ]
+                        ]
+                    ]
+                ]
             ],
-            model: .gpt4_o
-        )
-
-        openAI.chats(query: query) { result in
+            "max_tokens": 50
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+        } catch {
+            completion(.failure(error))
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
-                switch result {
-                case .success(let chatResult):
-                    if let responseText = chatResult.choices.first?.message.content {
-                        // Check if the response indicates showering
-                        if responseText.contains("Showered") {
+                if let error = error {
+                    print("Network Error: \(error)")
+                    completion(.failure(error))
+                    return
+                }
+                
+                guard let data = data else {
+                    completion(.failure(NSError(domain: "OpenAIError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
+                    return
+                }
+                
+                do {
+                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                       let choices = json["choices"] as? [[String: Any]],
+                       let firstChoice = choices.first,
+                       let message = firstChoice["message"] as? [String: Any],
+                       let content = message["content"] as? String {
+                        
+                        print("GPT Vision Response: \(content)")
+                        
+                        if content.lowercased().contains("showered") {
                             self.saveShowerDataLocally { error in
                                 if let error = error {
                                     completion(.failure(error))
                                 } else {
-                                    completion(.success(responseText))
+                                    completion(.success(content))
                                 }
                             }
                         } else {
-                            completion(.success(responseText))
+                            completion(.success(content))
                         }
                     } else {
-                        let error = NSError(domain: "OpenAIError", code: 0, userInfo: [NSLocalizedDescriptionKey: "No response text found."])
-                        completion(.failure(error))
+                        // Try to parse error message
+                        if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+                           let error = json["error"] as? [String: Any],
+                           let message = error["message"] as? String {
+                            print("OpenAI API Error: \(message)")
+                            completion(.failure(NSError(domain: "OpenAIError", code: 0, userInfo: [NSLocalizedDescriptionKey: message])))
+                        } else {
+                            completion(.failure(NSError(domain: "OpenAIError", code: 0, userInfo: [NSLocalizedDescriptionKey: "Could not parse response"])))
+                        }
                     }
-                case .failure(let error):
+                } catch {
+                    print("JSON Parsing Error: \(error)")
                     completion(.failure(error))
                 }
             }
-        }
+        }.resume()
+    }
+    
+    private func getAPIKey() -> String {
+        return "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"
     }
 
     private func saveShowerDataLocally(completion: @escaping (Error?) -> Void) {
