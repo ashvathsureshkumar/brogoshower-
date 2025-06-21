@@ -330,7 +330,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
                 
                 switch result {
                 case .success(let analysis):
-                    if analysis.contains("Showered") {
+                    print("Claude Vision Response: \(analysis)")
+                    if analysis.lowercased().contains("showered") && !analysis.lowercased().contains("not showered") {
                         self?.showShowerDetectedAnimation()
                         self?.saveShowerForToday()
                         self?.fetchShowerData()
