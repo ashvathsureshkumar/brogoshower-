@@ -1,7 +1,6 @@
 import Foundation
 import UIKit
 
-// Simple local authentication service
 class AuthService {
     static let shared = AuthService()
     
@@ -76,7 +75,7 @@ class OpenAIService {
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-        request.setValue(getAPIKey(), forHTTPHeaderField: "x-api-key") // ✅ FIXED (no "Bearer")
+        request.setValue(getAPIKey(), forHTTPHeaderField: "x-api-key") 
         
         let requestBody: [String: Any] = [
             "model": "claude-3-5-sonnet-20241022",
@@ -162,7 +161,6 @@ class OpenAIService {
     }
     
     private func getAPIKey() -> String {
-        // ⚠️ Replace this with secure storage in production
         return "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"
     }
     
