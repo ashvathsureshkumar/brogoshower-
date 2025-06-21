@@ -4,7 +4,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private let monthLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 24, weight: .bold)
+        label.font = UIFont.systemFont(ofSize: 28, weight: .bold)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
@@ -20,8 +20,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     private lazy var collectionView: UICollectionView = {
         let layout = UICollectionViewFlowLayout()
-        layout.minimumLineSpacing = 0
-        layout.minimumInteritemSpacing = 0
+        layout.minimumLineSpacing = 2
+        layout.minimumInteritemSpacing = 2
         let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.dataSource = self
         collectionView.delegate = self
@@ -33,11 +33,15 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private let takePictureButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("📸 YEET A SHOWER PIC 💦", for: .normal)
-        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 16)
+        button.setTitle("Take Shower Photo", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         button.backgroundColor = UIColor.systemBlue
         button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 12
+        button.layer.cornerRadius = 16
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 4
+        button.layer.shadowOpacity = 0.1
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(handleTakePicture), for: .touchUpInside)
         return button
@@ -47,18 +51,17 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         let label = UILabel()
         label.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         label.textAlignment = .center
-        label.textColor = .gray
+        label.textColor = .secondaryLabel
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    private let statusLabel: UILabel = {
+    private let statsLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
+        label.font = UIFont.systemFont(ofSize: 15, weight: .medium)
         label.textAlignment = .center
-        label.textColor = .darkGray
+        label.textColor = .label
         label.translatesAutoresizingMaskIntoConstraints = false
-        label.numberOfLines = 2
         return label
     }()
 
@@ -68,21 +71,21 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
-        title = "🚿 BrogoShower 💪"
+        view.backgroundColor = .systemBackground
+        title = "Shower as a Service"
         setupViews()
         setupNavigationBar()
         loadProfileInfo()
         fetchShowerData()
         setupCalendar()
-        updateStatusLabel()
+        updateStatsLabel()
     }
     
     private func setupCalendar() {
         updateMonthLabel()
         setupMonthData()
         collectionView.reloadData()
-        updateStatusLabel()
+        updateStatsLabel()
     }
     
     private func setupMonthData() {
@@ -119,17 +122,17 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
     
     private func setupNavigationBar() {
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "✌️ Logout", style: .plain, target: self, action: #selector(handleLogout))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Logout", style: .plain, target: self, action: #selector(handleLogout))
         
-        let previousButton = UIBarButtonItem(title: "⬅️", style: .plain, target: self, action: #selector(goToPreviousMonth))
-        let nextButton = UIBarButtonItem(title: "➡️", style: .plain, target: self, action: #selector(goToNextMonth))
+        let previousButton = UIBarButtonItem(image: UIImage(systemName: "chevron.left"), style: .plain, target: self, action: #selector(goToPreviousMonth))
+        let nextButton = UIBarButtonItem(image: UIImage(systemName: "chevron.right"), style: .plain, target: self, action: #selector(goToNextMonth))
         navigationItem.leftBarButtonItems = [previousButton, nextButton]
     }
 
     private func setupViews() {
         view.addSubview(emailLabel)
         view.addSubview(monthLabel)
-        view.addSubview(statusLabel)
+        view.addSubview(statsLabel)
         view.addSubview(weekdaysStackView)
         view.addSubview(collectionView)
         view.addSubview(takePictureButton)
@@ -137,30 +140,29 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         setupWeekdayLabels()
 
         NSLayoutConstraint.activate([
-            emailLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            emailLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
             emailLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
 
-            monthLabel.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 15),
+            monthLabel.topAnchor.constraint(equalTo: emailLabel.bottomAnchor, constant: 24),
             monthLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            statusLabel.topAnchor.constraint(equalTo: monthLabel.bottomAnchor, constant: 8),
-            statusLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            statusLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            statusLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            statsLabel.topAnchor.constraint(equalTo: monthLabel.bottomAnchor, constant: 8),
+            statsLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
-            weekdaysStackView.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 15),
+            weekdaysStackView.topAnchor.constraint(equalTo: statsLabel.bottomAnchor, constant: 24),
             weekdaysStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             weekdaysStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            weekdaysStackView.heightAnchor.constraint(equalToConstant: 30),
             
-            collectionView.topAnchor.constraint(equalTo: weekdaysStackView.bottomAnchor, constant: 5),
+            collectionView.topAnchor.constraint(equalTo: weekdaysStackView.bottomAnchor, constant: 8),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             collectionView.heightAnchor.constraint(equalTo: collectionView.widthAnchor, multiplier: 5.0/7.0),
 
-            takePictureButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 20),
+            takePictureButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 32),
             takePictureButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             takePictureButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            takePictureButton.heightAnchor.constraint(equalToConstant: 55)
+            takePictureButton.heightAnchor.constraint(equalToConstant: 56)
         ])
     }
     
@@ -168,12 +170,13 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         for view in weekdaysStackView.arrangedSubviews {
             view.removeFromSuperview()
         }
-        let weekdays = ["☀️", "🌙", "💫", "⭐", "🔥", "🎉", "😴"]
+        let weekdays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
         for day in weekdays {
             let label = UILabel()
             label.text = day
-            label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+            label.font = UIFont.systemFont(ofSize: 14, weight: .medium)
             label.textAlignment = .center
+            label.textColor = .secondaryLabel
             weekdaysStackView.addArrangedSubview(label)
         }
     }
@@ -181,22 +184,12 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     private func updateMonthLabel() {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MMMM yyyy"
-        monthLabel.text = "🗓️ " + dateFormatter.string(from: currentDate) + " 🗓️"
+        monthLabel.text = dateFormatter.string(from: currentDate)
     }
     
-    private func updateStatusLabel() {
+    private func updateStatsLabel() {
         let currentMonthShowers = getCurrentMonthShowerCount()
-        let totalShowers = showerData.count
-        
-        if currentMonthShowers == 0 {
-            statusLabel.text = "💀 NO SHOWERS THIS MONTH 💀\nSTINKY LEVEL: MAXIMUM 🤢"
-        } else if currentMonthShowers < 5 {
-            statusLabel.text = "🦨 ONLY \(currentMonthShowers) SHOWERS THIS MONTH\nSTILL PRETTY STINKY NGL 😬"
-        } else if currentMonthShowers < 15 {
-            statusLabel.text = "🧼 \(currentMonthShowers) SHOWERS - NOT BAD!\nCLEAN VIBES ACTIVATED ✨"
-        } else {
-            statusLabel.text = "🏆 \(currentMonthShowers) SHOWERS - ABSOLUTE UNIT!\nCLEANEST BRO ALIVE 👑"
-        }
+        statsLabel.text = "\(currentMonthShowers) showers this month"
     }
     
     private func getCurrentMonthShowerCount() -> Int {
@@ -218,29 +211,49 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     @objc private func goToPreviousMonth() {
         currentDate = Calendar.current.date(byAdding: .month, value: -1, to: currentDate)!
-        setupCalendar()
+        animateCalendarTransition()
     }
 
     @objc private func goToNextMonth() {
         currentDate = Calendar.current.date(byAdding: .month, value: 1, to: currentDate)!
-        setupCalendar()
+        animateCalendarTransition()
+    }
+    
+    private func animateCalendarTransition() {
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut], animations: {
+            self.collectionView.alpha = 0.7
+        }) { _ in
+            self.setupCalendar()
+            UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseInOut], animations: {
+                self.collectionView.alpha = 1.0
+            })
+        }
     }
 
     private func loadProfileInfo() {
         if let currentUser = AuthService.shared.getCurrentUser() {
-            emailLabel.text = "🧑‍💻 " + currentUser
+            emailLabel.text = currentUser
         } else {
-            emailLabel.text = "👻 WHO ARE YOU??"
+            emailLabel.text = "Not logged in"
         }
     }
 
     private func fetchShowerData() {
         showerData = OpenAIService.shared.getShowerData()
         collectionView.reloadData()
-        updateStatusLabel()
+        updateStatsLabel()
     }
     
     @objc private func handleTakePicture() {
+        // Add button press animation
+        UIView.animate(withDuration: 0.1, animations: {
+            self.takePictureButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                self.takePictureButton.transform = CGAffineTransform.identity
+            }
+        }
+        
         #if targetEnvironment(simulator)
         showSimulatorAlert()
         return
@@ -259,28 +272,28 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     
     private func showSimulatorAlert() {
         let alert = UIAlertController(
-            title: "🤖 SIMULATOR DETECTED",
-            message: "Bruh, you can't take pics in the simulator! 📱 Get a real phone and try again 😤",
+            title: "Simulator Detected",
+            message: "Camera functionality is not available in the iOS Simulator. Please run this app on a physical device.",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "😔 Fine", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
     
     private func showCameraUnavailableAlert() {
         let alert = UIAlertController(
-            title: "📷 CAMERA BROKE",
-            message: "Your camera is more broken than my sleep schedule 💀",
+            title: "Camera Unavailable",
+            message: "The camera is not available on this device.",
             preferredStyle: .alert
         )
-        alert.addAction(UIAlertAction(title: "😭 RIP", style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
     
     @objc private func handleLogout() {
-        let alert = UIAlertController(title: "🚪 LEAVING SO SOON?", message: "You sure you wanna dip? Your shower streak is counting on you! 🏃‍♂️💨", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "🔙 Nah, I'll stay", style: .cancel, handler: nil))
-        alert.addAction(UIAlertAction(title: "✌️ Peace out", style: .destructive) { _ in
+        let alert = UIAlertController(title: "Logout", message: "Are you sure you want to logout?", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
+        alert.addAction(UIAlertAction(title: "Logout", style: .destructive) { _ in
             AuthService.shared.logout()
             self.navigateToLogin()
         })
@@ -311,16 +324,120 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             DispatchQueue.main.async {
                 switch result {
                 case .success(let analysis):
-                    self?.showAnalysisResult(analysis)
                     if analysis.contains("Showered") {
+                        self?.showShowerDetectedAnimation()
                         self?.saveShowerForToday()
                         self?.fetchShowerData()
+                    } else {
+                        self?.showAnalysisResult("No shower detected in image")
                     }
                 case .failure(let error):
                     self?.showAnalysisResult("Error: \(error.localizedDescription)")
                 }
             }
         }
+    }
+    
+    private func showShowerDetectedAnimation() {
+        // Create overlay view
+        let overlayView = UIView()
+        overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        overlayView.alpha = 0
+        overlayView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(overlayView)
+        
+        // Create success container
+        let successContainer = UIView()
+        successContainer.backgroundColor = .systemBackground
+        successContainer.layer.cornerRadius = 20
+        successContainer.layer.shadowColor = UIColor.black.cgColor
+        successContainer.layer.shadowOffset = CGSize(width: 0, height: 10)
+        successContainer.layer.shadowRadius = 20
+        successContainer.layer.shadowOpacity = 0.2
+        successContainer.translatesAutoresizingMaskIntoConstraints = false
+        successContainer.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
+        successContainer.alpha = 0
+        overlayView.addSubview(successContainer)
+        
+        // Create checkmark circle
+        let checkmarkContainer = UIView()
+        checkmarkContainer.backgroundColor = UIColor.systemGreen
+        checkmarkContainer.layer.cornerRadius = 40
+        checkmarkContainer.translatesAutoresizingMaskIntoConstraints = false
+        successContainer.addSubview(checkmarkContainer)
+        
+        // Create checkmark image
+        let checkmarkImageView = UIImageView(image: UIImage(systemName: "checkmark"))
+        checkmarkImageView.tintColor = .white
+        checkmarkImageView.contentMode = .scaleAspectFit
+        checkmarkImageView.translatesAutoresizingMaskIntoConstraints = false
+        checkmarkContainer.addSubview(checkmarkImageView)
+        
+        // Create text label
+        let textLabel = UILabel()
+        textLabel.text = "Shower detected"
+        textLabel.font = UIFont.systemFont(ofSize: 20, weight: .medium)
+        textLabel.textAlignment = .center
+        textLabel.textColor = .label
+        textLabel.translatesAutoresizingMaskIntoConstraints = false
+        successContainer.addSubview(textLabel)
+        
+        // Setup constraints
+        NSLayoutConstraint.activate([
+            overlayView.topAnchor.constraint(equalTo: view.topAnchor),
+            overlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            overlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            overlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            successContainer.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
+            successContainer.centerYAnchor.constraint(equalTo: overlayView.centerYAnchor),
+            successContainer.widthAnchor.constraint(equalToConstant: 200),
+            successContainer.heightAnchor.constraint(equalToConstant: 160),
+            
+            checkmarkContainer.centerXAnchor.constraint(equalTo: successContainer.centerXAnchor),
+            checkmarkContainer.topAnchor.constraint(equalTo: successContainer.topAnchor, constant: 20),
+            checkmarkContainer.widthAnchor.constraint(equalToConstant: 80),
+            checkmarkContainer.heightAnchor.constraint(equalToConstant: 80),
+            
+            checkmarkImageView.centerXAnchor.constraint(equalTo: checkmarkContainer.centerXAnchor),
+            checkmarkImageView.centerYAnchor.constraint(equalTo: checkmarkContainer.centerYAnchor),
+            checkmarkImageView.widthAnchor.constraint(equalToConstant: 40),
+            checkmarkImageView.heightAnchor.constraint(equalToConstant: 40),
+            
+            textLabel.centerXAnchor.constraint(equalTo: successContainer.centerXAnchor),
+            textLabel.bottomAnchor.constraint(equalTo: successContainer.bottomAnchor, constant: -20),
+            textLabel.leadingAnchor.constraint(equalTo: successContainer.leadingAnchor, constant: 16),
+            textLabel.trailingAnchor.constraint(equalTo: successContainer.trailingAnchor, constant: -16)
+        ])
+        
+        // Animate in
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseOut], animations: {
+            overlayView.alpha = 1
+            successContainer.alpha = 1
+            successContainer.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
+        }) { _ in
+            UIView.animate(withDuration: 0.2, animations: {
+                successContainer.transform = CGAffineTransform.identity
+            }) { _ in
+                // Auto dismiss after 2 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                    UIView.animate(withDuration: 0.3, animations: {
+                        overlayView.alpha = 0
+                        successContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                    }) { _ in
+                        overlayView.removeFromSuperview()
+                    }
+                }
+            }
+        }
+        
+        // Add pulse animation to checkmark
+        let pulseAnimation = CABasicAnimation(keyPath: "transform.scale")
+        pulseAnimation.duration = 0.6
+        pulseAnimation.fromValue = 0.3
+        pulseAnimation.toValue = 1.0
+        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        checkmarkContainer.layer.add(pulseAnimation, forKey: "pulse")
     }
     
     private func saveShowerForToday() {
@@ -337,13 +454,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
 
     private func showAnalysisResult(_ result: String) {
-        let title = result.contains("Showered") ? "🎉 SHOWER DETECTED!" : "🤔 HMMMM..."
-        let message = result.contains("Showered") ? 
-            "YOOO YOU ACTUALLY SHOWERED! 🚿✨\nRespect the hygiene game! 💪" : 
-            "That doesn't look like a shower to me chief... 🧐\nTry again with actual shower evidence! 📸"
-        
-        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "💯 Got it", style: .default, handler: nil))
+        let alert = UIAlertController(title: "Analysis Result", message: result, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
         present(alert, animated: true, completion: nil)
     }
 
@@ -363,11 +475,11 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             let dateString = formatter.string(from: date)
             
             if showerData.contains(dateString) {
-                // GitHub green for shower days
-                cell.configure(with: UIColor(red: 0.16, green: 0.68, blue: 0.38, alpha: 1.0), isToday: isToday)
+                // Green for shower days
+                cell.configure(with: UIColor.systemGreen, isToday: isToday)
             } else {
-                // Light gray for no shower days (GitHub style)
-                cell.configure(with: UIColor(red: 0.93, green: 0.93, blue: 0.93, alpha: 1.0), isToday: isToday)
+                // Light gray for no shower days
+                cell.configure(with: UIColor.systemGray5, isToday: isToday)
             }
         } else {
             // Transparent for empty cells
@@ -378,7 +490,8 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let width = collectionView.frame.width / 7
+        let totalSpacing = 2 * 6 // 6 gaps between 7 columns
+        let width = (collectionView.frame.width - CGFloat(totalSpacing)) / 7
         return CGSize(width: width, height: width)
     }
 
