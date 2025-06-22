@@ -99,7 +99,108 @@ class SideEyePopup {
                 overlayView.alpha = 0
             }) { _ in
                 overlayView.removeFromSuperview()
+                // Show diddy image directly
+                if let topViewController = window.rootViewController?.topMostViewController() {
+                    showDiddyImage(on: topViewController)
+                }
             }
         }
+    }
+    
+    private static func showDiddyImage(on viewController: UIViewController) {
+        // Create continuous vibration
+        let heavyImpact = UIImpactFeedbackGenerator(style: .heavy)
+        let notificationFeedback = UINotificationFeedbackGenerator()
+        
+        // Start continuous vibration pattern
+        var vibrationTimer: Timer?
+        vibrationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+            heavyImpact.impactOccurred()
+        }
+        
+        // Stop vibration after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            vibrationTimer?.invalidate()
+        }
+        
+        // Add notification feedback at start
+        notificationFeedback.notificationOccurred(.success)
+        
+        // Create overlay view
+        let overlayView = UIView()
+        overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+        overlayView.alpha = 0
+        overlayView.translatesAutoresizingMaskIntoConstraints = false
+        viewController.view.addSubview(overlayView)
+        
+        // Create image view for diddy
+        let diddyImageView = UIImageView(image: UIImage(named: "diddy"))
+        diddyImageView.contentMode = .scaleAspectFit
+        diddyImageView.translatesAutoresizingMaskIntoConstraints = false
+        diddyImageView.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
+        diddyImageView.alpha = 0
+        overlayView.addSubview(diddyImageView)
+        
+        // Setup constraints
+        NSLayoutConstraint.activate([
+            overlayView.topAnchor.constraint(equalTo: viewController.view.topAnchor),
+            overlayView.leadingAnchor.constraint(equalTo: viewController.view.leadingAnchor),
+            overlayView.trailingAnchor.constraint(equalTo: viewController.view.trailingAnchor),
+            overlayView.bottomAnchor.constraint(equalTo: viewController.view.bottomAnchor),
+            
+            diddyImageView.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
+            diddyImageView.centerYAnchor.constraint(equalTo: overlayView.centerYAnchor),
+            diddyImageView.widthAnchor.constraint(equalToConstant: 350),
+            diddyImageView.heightAnchor.constraint(equalToConstant: 350)
+        ])
+        
+        // Animate in
+        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseOut], animations: {
+            overlayView.alpha = 1
+            diddyImageView.alpha = 1
+            diddyImageView.transform = CGAffineTransform.identity
+        }) { _ in            
+            // Auto dismiss after 2 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                UIView.animate(withDuration: 0.3, animations: {
+                    overlayView.alpha = 0
+                    diddyImageView.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
+                }) { _ in
+                    overlayView.removeFromSuperview()
+                }
+            }
+        }
+        
+        // Add tap to dismiss
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissDiddyImage))
+        overlayView.addGestureRecognizer(tapGesture)
+        overlayView.tag = 996
+    }
+    
+    @objc private static func dismissDiddyImage() {
+        if let window = UIApplication.shared.windows.first,
+           let overlayView = window.viewWithTag(996) {
+            UIView.animate(withDuration: 0.3, animations: {
+                overlayView.alpha = 0
+            }) { _ in
+                overlayView.removeFromSuperview()
+            }
+        }
+    }
+}
+
+// Extension to find top view controller
+extension UIViewController {
+    func topMostViewController() -> UIViewController {
+        if let presented = presentedViewController {
+            return presented.topMostViewController()
+        }
+        if let navigation = self as? UINavigationController {
+            return navigation.visibleViewController?.topMostViewController() ?? self
+        }
+        if let tab = self as? UITabBarController {
+            return tab.selectedViewController?.topMostViewController() ?? self
+        }
+        return self
     }
 }
