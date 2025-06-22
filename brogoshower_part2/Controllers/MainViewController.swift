@@ -33,7 +33,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private let takePictureButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Did you shower today?", for: .normal)
+        button.setTitle("Did you shower today? 🤢", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         button.backgroundColor = UIColor.systemBlue
         button.setTitleColor(.white, for: .normal)
@@ -44,6 +44,22 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         button.layer.shadowOpacity = 0.1
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(handleTakePicture), for: .touchUpInside)
+        return button
+    }()
+    
+    private let challengeFriendsButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Challenge your friends to a shower 🏆", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        button.backgroundColor = UIColor.systemBlue
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 16
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 4
+        button.layer.shadowOpacity = 0.1
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(handleChallengeFriends), for: .touchUpInside)
         return button
     }()
     
@@ -136,6 +152,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(weekdaysStackView)
         view.addSubview(collectionView)
         view.addSubview(takePictureButton)
+        view.addSubview(challengeFriendsButton)
         
         setupWeekdayLabels()
 
@@ -162,7 +179,12 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             takePictureButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 32),
             takePictureButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             takePictureButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            takePictureButton.heightAnchor.constraint(equalToConstant: 56)
+            takePictureButton.heightAnchor.constraint(equalToConstant: 56),
+            
+            challengeFriendsButton.topAnchor.constraint(equalTo: takePictureButton.bottomAnchor, constant: 16),
+            challengeFriendsButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            challengeFriendsButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            challengeFriendsButton.heightAnchor.constraint(equalToConstant: 56)
         ])
     }
     
@@ -646,5 +668,21 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             UserDefaults.standard.set(showerData, forKey: "shower_dates")
             collectionView.reloadData()
         }
+    }
+
+    @objc private func handleChallengeFriends() {
+        // Add button press animation
+        UIView.animate(withDuration: 0.1, animations: {
+            self.challengeFriendsButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                self.challengeFriendsButton.transform = CGAffineTransform.identity
+            }
+        }
+        
+        // TODO: Implement challenge friends functionality
+        let alert = UIAlertController(title: "Coming Soon", message: "Challenge friends feature coming soon!", preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        present(alert, animated: true, completion: nil)
     }
 } 
