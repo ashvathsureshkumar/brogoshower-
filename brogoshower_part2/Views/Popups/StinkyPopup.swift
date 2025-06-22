@@ -2,9 +2,26 @@ import UIKit
 
 class StinkyPopup {
     static func show(on viewController: UIViewController) {
-        // Trigger haptic feedback (vibration)
-        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-        impactFeedback.impactOccurred()
+        // Create continuous alarming vibration
+        let heavyImpact = UIImpactFeedbackGenerator(style: .heavy)
+        let notificationFeedback = UINotificationFeedbackGenerator()
+        
+        // Start continuous vibration pattern
+        var vibrationTimer: Timer?
+        vibrationTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { timer in
+            heavyImpact.impactOccurred()
+        }
+        
+        // Stop vibration after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            vibrationTimer?.invalidate()
+        }
+        
+        // Add error notification at start and end
+        notificationFeedback.notificationOccurred(.error)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            notificationFeedback.notificationOccurred(.error)
+        }
         
         // Create overlay view
         let overlayView = UIView()
@@ -114,13 +131,5 @@ class StinkyPopup {
         shakeAnimation.duration = 0.3
         shakeAnimation.repeatCount = 5
         stinkContainer.layer.add(shakeAnimation, forKey: "shake")
-        
-        // Additional vibration bursts
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            impactFeedback.impactOccurred()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            impactFeedback.impactOccurred()
-        }
     }
 }
