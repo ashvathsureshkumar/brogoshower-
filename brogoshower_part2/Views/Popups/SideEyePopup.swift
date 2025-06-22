@@ -60,22 +60,24 @@ class SideEyePopup {
             
             container.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
             container.centerYAnchor.constraint(equalTo: overlayView.centerYAnchor),
-            container.widthAnchor.constraint(equalToConstant: 280),
+            container.widthAnchor.constraint(equalToConstant: 380),
+            container.leadingAnchor.constraint(greaterThanOrEqualTo: overlayView.leadingAnchor, constant: 20),
+            container.trailingAnchor.constraint(lessThanOrEqualTo: overlayView.trailingAnchor, constant: -20),
             
-            sideEyeImageView.topAnchor.constraint(equalTo: container.topAnchor, constant: 20),
+            sideEyeImageView.topAnchor.constraint(equalTo: container.topAnchor, constant: 30),
             sideEyeImageView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            sideEyeImageView.widthAnchor.constraint(equalToConstant: 200),
-            sideEyeImageView.heightAnchor.constraint(equalToConstant: 200),
+            sideEyeImageView.widthAnchor.constraint(equalToConstant: 320),
+            sideEyeImageView.heightAnchor.constraint(equalToConstant: 320),
             
-            captionLabel.topAnchor.constraint(equalTo: sideEyeImageView.bottomAnchor, constant: 16),
-            captionLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 16),
-            captionLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
+            captionLabel.topAnchor.constraint(equalTo: sideEyeImageView.bottomAnchor, constant: 20),
+            captionLabel.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
+            captionLabel.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
             
-            showerButton.topAnchor.constraint(equalTo: captionLabel.bottomAnchor, constant: 20),
-            showerButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 20),
-            showerButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -20),
-            showerButton.heightAnchor.constraint(equalToConstant: 44),
-            showerButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -20)
+            showerButton.topAnchor.constraint(equalTo: captionLabel.bottomAnchor, constant: 25),
+            showerButton.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 30),
+            showerButton.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -30),
+            showerButton.heightAnchor.constraint(equalToConstant: 50),
+            showerButton.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -30)
         ])
         
         // Animate in
