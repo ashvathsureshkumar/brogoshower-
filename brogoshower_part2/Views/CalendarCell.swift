@@ -6,7 +6,7 @@ class CalendarCell: UICollectionViewCell {
     private let colorView: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer.cornerRadius = 2.0
+        view.layer.cornerRadius = 12.0
         view.layer.masksToBounds = true
         view.layer.borderWidth = 1.0
         view.layer.borderColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0).cgColor

@@ -19,7 +19,5 @@
 			</array>
 		</dict>
 	</dict>
-	<key>NSCameraUsageDescription</key>
-	<string>To verify that you have showered, we need to access your camera.</string>
 </dict>
 </plist>
