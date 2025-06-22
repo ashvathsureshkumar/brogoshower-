@@ -26,7 +26,7 @@ class LoginViewController: UIViewController {
 
     private let titleLabel: UILabel = {
         let label = UILabel()
-        label.text = "Shower as a Service"
+        label.text = "Shower as a Service 🚿"
         label.font = UIFont.systemFont(ofSize: 34, weight: .bold)
         label.textAlignment = .center
         label.textColor = .label

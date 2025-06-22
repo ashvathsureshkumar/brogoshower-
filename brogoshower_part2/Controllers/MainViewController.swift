@@ -33,7 +33,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private let takePictureButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Take Shower Photo", for: .normal)
+        button.setTitle("Did you shower today?", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         button.backgroundColor = UIColor.systemBlue
         button.setTitleColor(.white, for: .normal)
@@ -72,7 +72,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        title = "Shower as a Service"
+        title = "Shower as a Service 🚿"
         setupViews()
         setupNavigationBar()
         loadProfileInfo()
