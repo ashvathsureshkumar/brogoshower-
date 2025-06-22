@@ -1,6 +1,7 @@
 import UIKit
+import MessageUI
 
-class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMessageComposeViewControllerDelegate {
 
     private let monthLabel: UILabel = {
         let label = UILabel()
@@ -33,7 +34,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
 
     private let takePictureButton: UIButton = {
         let button = UIButton(type: .system)
-        button.setTitle("Take Shower Photo", for: .normal)
+        button.setTitle("Did you shower today? 🤢", for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         button.backgroundColor = UIColor.systemBlue
         button.setTitleColor(.white, for: .normal)
@@ -44,6 +45,24 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         button.layer.shadowOpacity = 0.1
         button.translatesAutoresizingMaskIntoConstraints = false
         button.addTarget(self, action: #selector(handleTakePicture), for: .touchUpInside)
+        return button
+    }()
+    
+    private let challengeFriendsButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Challenge Friends to Shower 💪", for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
+        button.titleLabel?.adjustsFontSizeToFitWidth = true
+        button.titleLabel?.minimumScaleFactor = 0.8
+        button.backgroundColor = UIColor(red: 218/255, green: 165/255, blue: 32/255, alpha: 1.0)
+        button.setTitleColor(.white, for: .normal)
+        button.layer.cornerRadius = 16
+        button.layer.shadowColor = UIColor.black.cgColor
+        button.layer.shadowOffset = CGSize(width: 0, height: 2)
+        button.layer.shadowRadius = 4
+        button.layer.shadowOpacity = 0.1
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.addTarget(self, action: #selector(handleChallengeFriends), for: .touchUpInside)
         return button
     }()
     
@@ -72,7 +91,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        title = "Shower as a Service"
+        title = "Shower as a Service 🚿"
         setupViews()
         setupNavigationBar()
         loadProfileInfo()
@@ -136,6 +155,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         view.addSubview(weekdaysStackView)
         view.addSubview(collectionView)
         view.addSubview(takePictureButton)
+        view.addSubview(challengeFriendsButton)
         
         setupWeekdayLabels()
 
@@ -162,7 +182,12 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             takePictureButton.topAnchor.constraint(equalTo: collectionView.bottomAnchor, constant: 32),
             takePictureButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             takePictureButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            takePictureButton.heightAnchor.constraint(equalToConstant: 56)
+            takePictureButton.heightAnchor.constraint(equalToConstant: 56),
+            
+            challengeFriendsButton.topAnchor.constraint(equalTo: takePictureButton.bottomAnchor, constant: 16),
+            challengeFriendsButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            challengeFriendsButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            challengeFriendsButton.heightAnchor.constraint(equalToConstant: 56)
         ])
     }
     
@@ -239,7 +264,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
 
     private func fetchShowerData() {
-        showerData = OpenAIService.shared.getShowerData()
+        showerData = ClaudeService.shared.getShowerData()
         collectionView.reloadData()
         updateStatsLabel()
     }
@@ -323,7 +348,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         // Show loading animation
         showAnalysisLoadingAnimation()
 
-        OpenAIService.shared.analyzeImage(image: imageData) { [weak self] result in
+        ClaudeService.shared.analyzeImage(image: imageData) { [weak self] result in
             DispatchQueue.main.async {
                 // Hide loading animation
                 self?.hideAnalysisLoadingAnimation()
@@ -332,11 +357,15 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
                 case .success(let analysis):
                     print("Claude Vision Response: \(analysis)")
                     if analysis.lowercased().contains("showered") && !analysis.lowercased().contains("not showered") {
-                        self?.showShowerDetectedAnimation()
+                        if let strongSelf = self {
+                            ShowerDetectedPopup.show(on: strongSelf)
+                        }
                         self?.saveShowerForToday()
                         self?.fetchShowerData()
                     } else {
-                        self?.showAnalysisResult("No shower detected in image")
+                        if let strongSelf = self {
+                            SideEyePopup.show(on: strongSelf)
+                        }
                     }
                 case .failure(let error):
                     self?.showAnalysisResult("Error: \(error.localizedDescription)")
@@ -479,108 +508,6 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         }
     }
     
-    private func showShowerDetectedAnimation() {
-        // Create overlay view
-        let overlayView = UIView()
-        overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-        overlayView.alpha = 0
-        overlayView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(overlayView)
-        
-        // Create success container
-        let successContainer = UIView()
-        successContainer.backgroundColor = .systemBackground
-        successContainer.layer.cornerRadius = 20
-        successContainer.layer.shadowColor = UIColor.black.cgColor
-        successContainer.layer.shadowOffset = CGSize(width: 0, height: 10)
-        successContainer.layer.shadowRadius = 20
-        successContainer.layer.shadowOpacity = 0.2
-        successContainer.translatesAutoresizingMaskIntoConstraints = false
-        successContainer.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
-        successContainer.alpha = 0
-        overlayView.addSubview(successContainer)
-        
-        // Create checkmark circle
-        let checkmarkContainer = UIView()
-        checkmarkContainer.backgroundColor = UIColor.systemGreen
-        checkmarkContainer.layer.cornerRadius = 40
-        checkmarkContainer.translatesAutoresizingMaskIntoConstraints = false
-        successContainer.addSubview(checkmarkContainer)
-        
-        // Create checkmark image
-        let checkmarkImageView = UIImageView(image: UIImage(systemName: "checkmark"))
-        checkmarkImageView.tintColor = .white
-        checkmarkImageView.contentMode = .scaleAspectFit
-        checkmarkImageView.translatesAutoresizingMaskIntoConstraints = false
-        checkmarkContainer.addSubview(checkmarkImageView)
-        
-        // Create text label
-        let textLabel = UILabel()
-        textLabel.text = "Shower detected"
-        textLabel.font = UIFont.systemFont(ofSize: 20, weight: .medium)
-        textLabel.textAlignment = .center
-        textLabel.textColor = .label
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        successContainer.addSubview(textLabel)
-        
-        // Setup constraints
-        NSLayoutConstraint.activate([
-            overlayView.topAnchor.constraint(equalTo: view.topAnchor),
-            overlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            overlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            overlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            successContainer.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
-            successContainer.centerYAnchor.constraint(equalTo: overlayView.centerYAnchor),
-            successContainer.widthAnchor.constraint(equalToConstant: 200),
-            successContainer.heightAnchor.constraint(equalToConstant: 160),
-            
-            checkmarkContainer.centerXAnchor.constraint(equalTo: successContainer.centerXAnchor),
-            checkmarkContainer.topAnchor.constraint(equalTo: successContainer.topAnchor, constant: 20),
-            checkmarkContainer.widthAnchor.constraint(equalToConstant: 80),
-            checkmarkContainer.heightAnchor.constraint(equalToConstant: 80),
-            
-            checkmarkImageView.centerXAnchor.constraint(equalTo: checkmarkContainer.centerXAnchor),
-            checkmarkImageView.centerYAnchor.constraint(equalTo: checkmarkContainer.centerYAnchor),
-            checkmarkImageView.widthAnchor.constraint(equalToConstant: 40),
-            checkmarkImageView.heightAnchor.constraint(equalToConstant: 40),
-            
-            textLabel.centerXAnchor.constraint(equalTo: successContainer.centerXAnchor),
-            textLabel.bottomAnchor.constraint(equalTo: successContainer.bottomAnchor, constant: -20),
-            textLabel.leadingAnchor.constraint(equalTo: successContainer.leadingAnchor, constant: 16),
-            textLabel.trailingAnchor.constraint(equalTo: successContainer.trailingAnchor, constant: -16)
-        ])
-        
-        // Animate in
-        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseOut], animations: {
-            overlayView.alpha = 1
-            successContainer.alpha = 1
-            successContainer.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
-        }) { _ in
-            UIView.animate(withDuration: 0.2, animations: {
-                successContainer.transform = CGAffineTransform.identity
-            }) { _ in
-                // Auto dismiss after 2 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    UIView.animate(withDuration: 0.3, animations: {
-                        overlayView.alpha = 0
-                        successContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                    }) { _ in
-                        overlayView.removeFromSuperview()
-                    }
-                }
-            }
-        }
-        
-        // Add pulse animation to checkmark
-        let pulseAnimation = CABasicAnimation(keyPath: "transform.scale")
-        pulseAnimation.duration = 0.6
-        pulseAnimation.fromValue = 0.3
-        pulseAnimation.toValue = 1.0
-        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeOut)
-        checkmarkContainer.layer.add(pulseAnimation, forKey: "pulse")
-    }
-    
     private func saveShowerForToday() {
         let today = Date()
         let dateFormatter = DateFormatter()
@@ -646,5 +573,25 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             UserDefaults.standard.set(showerData, forKey: "shower_dates")
             collectionView.reloadData()
         }
+    }
+
+    @objc private func handleChallengeFriends() {
+        // Add button press animation
+        UIView.animate(withDuration: 0.1, animations: {
+            self.challengeFriendsButton.transform = CGAffineTransform(scaleX: 0.95, y: 0.95)
+        }) { _ in
+            UIView.animate(withDuration: 0.1) {
+                self.challengeFriendsButton.transform = CGAffineTransform.identity
+            }
+        }
+        
+        MessageService.shared.sendChallenge(from: self, delegate: self)
+    }
+    
+    // MARK: - MFMessageComposeViewControllerDelegate
+    
+    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
+        controller.dismiss(animated: true, completion: nil)
+        MessageService.handleMessageResult(result, viewController: self)
     }
 } 
