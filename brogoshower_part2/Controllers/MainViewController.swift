@@ -364,7 +364,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
                         self?.fetchShowerData()
                     } else {
                         if let strongSelf = self {
-                            StinkyPopup.show(on: strongSelf)
+                            SideEyePopup.show(on: strongSelf)
                         }
                     }
                 case .failure(let error):
