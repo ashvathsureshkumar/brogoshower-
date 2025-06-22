@@ -39,9 +39,10 @@ class ShowerDetectedPopup {
         // Create text label
         let textLabel = UILabel()
         textLabel.text = "Shower detected... surprisingly. Good job ig. You prob still smell like shit tho. Put on some deodorant 😷"
-        textLabel.font = UIFont.systemFont(ofSize: 20, weight: .medium)
+        textLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         textLabel.textAlignment = .center
         textLabel.textColor = .label
+        textLabel.numberOfLines = 0
         textLabel.translatesAutoresizingMaskIntoConstraints = false
         successContainer.addSubview(textLabel)
         
@@ -54,8 +55,9 @@ class ShowerDetectedPopup {
             
             successContainer.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
             successContainer.centerYAnchor.constraint(equalTo: overlayView.centerYAnchor),
-            successContainer.widthAnchor.constraint(equalToConstant: 200),
-            successContainer.heightAnchor.constraint(equalToConstant: 160),
+            successContainer.widthAnchor.constraint(lessThanOrEqualToConstant: 320),
+            successContainer.leadingAnchor.constraint(greaterThanOrEqualTo: overlayView.leadingAnchor, constant: 20),
+            successContainer.trailingAnchor.constraint(lessThanOrEqualTo: overlayView.trailingAnchor, constant: -20),
             
             checkmarkContainer.centerXAnchor.constraint(equalTo: successContainer.centerXAnchor),
             checkmarkContainer.topAnchor.constraint(equalTo: successContainer.topAnchor, constant: 20),
@@ -67,10 +69,10 @@ class ShowerDetectedPopup {
             checkmarkImageView.widthAnchor.constraint(equalToConstant: 40),
             checkmarkImageView.heightAnchor.constraint(equalToConstant: 40),
             
-            textLabel.centerXAnchor.constraint(equalTo: successContainer.centerXAnchor),
-            textLabel.bottomAnchor.constraint(equalTo: successContainer.bottomAnchor, constant: -20),
+            textLabel.topAnchor.constraint(equalTo: checkmarkContainer.bottomAnchor, constant: 16),
             textLabel.leadingAnchor.constraint(equalTo: successContainer.leadingAnchor, constant: 16),
-            textLabel.trailingAnchor.constraint(equalTo: successContainer.trailingAnchor, constant: -16)
+            textLabel.trailingAnchor.constraint(equalTo: successContainer.trailingAnchor, constant: -16),
+            textLabel.bottomAnchor.constraint(equalTo: successContainer.bottomAnchor, constant: -20)
         ])
         
         // Animate in
