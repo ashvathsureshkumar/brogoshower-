@@ -361,7 +361,9 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
                         self?.saveShowerForToday()
                         self?.fetchShowerData()
                     } else {
-                        self?.showAnalysisResult("No shower detected in image")
+                        if let strongSelf = self {
+                            StinkyPopup.show(on: strongSelf)
+                        }
                     }
                 case .failure(let error):
                     self?.showAnalysisResult("Error: \(error.localizedDescription)")
