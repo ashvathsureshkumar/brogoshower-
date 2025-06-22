@@ -1,6 +1,6 @@
-CS Majors stink! Here's the solution.
+## CS Majors stink! Here's the solution.
 
-https://x.com/createdbymason/status/1935433850664153529
+## https://x.com/createdbymason/status/1935433850664153529
 
 ![IMG_9935](https://github.com/user-attachments/assets/784b0a75-3e76-4137-8786-575d95456a1a)
 ![IMG_9936](https://github.com/user-attachments/assets/2d2b5a04-bc1b-4c16-879f-46b62f2d3546)
