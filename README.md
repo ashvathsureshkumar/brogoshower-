@@ -39,4 +39,4 @@ The app follows the MVC (Model-View-Controller) pattern with separate controller
 
 ## AI Integration
 
-This app uses Claude for AI functionality rather than OpenAI services. 
+This app uses Claude for AI functionality rather than OpenAI services.

@@ -19,9 +19,20 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
 
         window = UIWindow(windowScene: windowScene)
-        let loginViewController = LoginViewController()
-        let navigationController = UINavigationController(rootViewController: loginViewController)
-        window?.rootViewController = navigationController
+        
+        // Check if user is already logged in
+        let rootViewController: UIViewController
+        if AuthService.shared.isLoggedIn() {
+            // User is logged in, go directly to main screen
+            let mainViewController = MainViewController()
+            rootViewController = UINavigationController(rootViewController: mainViewController)
+        } else {
+            // User not logged in, show login screen
+            let loginViewController = LoginViewController()
+            rootViewController = UINavigationController(rootViewController: loginViewController)
+        }
+        
+        window?.rootViewController = rootViewController
         window?.makeKeyAndVisible()
     }
 
