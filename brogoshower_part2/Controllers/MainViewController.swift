@@ -264,7 +264,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     }
 
     private func fetchShowerData() {
-        showerData = OpenAIService.shared.getShowerData()
+        showerData = ClaudeService.shared.getShowerData()
         collectionView.reloadData()
         updateStatsLabel()
     }
@@ -348,7 +348,7 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
         // Show loading animation
         showAnalysisLoadingAnimation()
 
-        OpenAIService.shared.analyzeImage(image: imageData) { [weak self] result in
+        ClaudeService.shared.analyzeImage(image: imageData) { [weak self] result in
             DispatchQueue.main.async {
                 // Hide loading animation
                 self?.hideAnalysisLoadingAnimation()

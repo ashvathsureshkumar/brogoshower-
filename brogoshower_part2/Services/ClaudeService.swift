@@ -51,8 +51,8 @@ class AuthService {
 }
 
 // Claude image + text analysis service
-class OpenAIService {
-    static let shared = OpenAIService()
+class ClaudeService {
+    static let shared = ClaudeService()
     
     private init() {}
     
