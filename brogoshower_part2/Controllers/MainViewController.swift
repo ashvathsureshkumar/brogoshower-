@@ -51,12 +51,12 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
     private let challengeFriendsButton: UIButton = {
         let button = UIButton(type: .system)
         button.setTitle("Challenge Friends to Shower 💪", for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .semibold)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         button.titleLabel?.adjustsFontSizeToFitWidth = true
         button.titleLabel?.minimumScaleFactor = 0.8
-        button.backgroundColor = UIColor.systemBlue
+        button.backgroundColor = UIColor(red: 218/255, green: 165/255, blue: 32/255, alpha: 1.0)
         button.setTitleColor(.white, for: .normal)
-        button.layer.cornerRadius = 12
+        button.layer.cornerRadius = 16
         button.layer.shadowColor = UIColor.black.cgColor
         button.layer.shadowOffset = CGSize(width: 0, height: 2)
         button.layer.shadowRadius = 4
@@ -185,9 +185,9 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             takePictureButton.heightAnchor.constraint(equalToConstant: 56),
             
             challengeFriendsButton.topAnchor.constraint(equalTo: takePictureButton.bottomAnchor, constant: 16),
-            challengeFriendsButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            challengeFriendsButton.widthAnchor.constraint(equalToConstant: 280),
-            challengeFriendsButton.heightAnchor.constraint(equalToConstant: 44)
+            challengeFriendsButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            challengeFriendsButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            challengeFriendsButton.heightAnchor.constraint(equalToConstant: 56)
         ])
     }
     
