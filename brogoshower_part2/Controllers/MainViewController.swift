@@ -1,6 +1,7 @@
 import UIKit
+import MessageUI
 
-class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+class MainViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout, UIImagePickerControllerDelegate, UINavigationControllerDelegate, MFMessageComposeViewControllerDelegate {
 
     private let monthLabel: UILabel = {
         let label = UILabel()
@@ -682,9 +683,13 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             }
         }
         
-        // TODO: Implement challenge friends functionality
-        let alert = UIAlertController(title: "Coming Soon", message: "Challenge friends feature coming soon!", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
-        present(alert, animated: true, completion: nil)
+        MessageService.shared.sendChallenge(from: self, delegate: self)
+    }
+    
+    // MARK: - MFMessageComposeViewControllerDelegate
+    
+    func messageComposeViewController(_ controller: MFMessageComposeViewController, didFinishWith result: MessageComposeResult) {
+        controller.dismiss(animated: true, completion: nil)
+        MessageService.handleMessageResult(result, viewController: self)
     }
 } 
