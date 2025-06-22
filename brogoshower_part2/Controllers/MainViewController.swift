@@ -357,7 +357,9 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
                 case .success(let analysis):
                     print("Claude Vision Response: \(analysis)")
                     if analysis.lowercased().contains("showered") && !analysis.lowercased().contains("not showered") {
-                        self?.showShowerDetectedAnimation()
+                        if let strongSelf = self {
+                            ShowerDetectedPopup.show(on: strongSelf)
+                        }
                         self?.saveShowerForToday()
                         self?.fetchShowerData()
                     } else {
@@ -504,108 +506,6 @@ class MainViewController: UIViewController, UICollectionViewDataSource, UICollec
             overlay.removeFromSuperview()
             self.analysisLoadingOverlay = nil
         }
-    }
-    
-    private func showShowerDetectedAnimation() {
-        // Create overlay view
-        let overlayView = UIView()
-        overlayView.backgroundColor = UIColor.black.withAlphaComponent(0.3)
-        overlayView.alpha = 0
-        overlayView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(overlayView)
-        
-        // Create success container
-        let successContainer = UIView()
-        successContainer.backgroundColor = .systemBackground
-        successContainer.layer.cornerRadius = 20
-        successContainer.layer.shadowColor = UIColor.black.cgColor
-        successContainer.layer.shadowOffset = CGSize(width: 0, height: 10)
-        successContainer.layer.shadowRadius = 20
-        successContainer.layer.shadowOpacity = 0.2
-        successContainer.translatesAutoresizingMaskIntoConstraints = false
-        successContainer.transform = CGAffineTransform(scaleX: 0.3, y: 0.3)
-        successContainer.alpha = 0
-        overlayView.addSubview(successContainer)
-        
-        // Create checkmark circle
-        let checkmarkContainer = UIView()
-        checkmarkContainer.backgroundColor = UIColor.systemGreen
-        checkmarkContainer.layer.cornerRadius = 40
-        checkmarkContainer.translatesAutoresizingMaskIntoConstraints = false
-        successContainer.addSubview(checkmarkContainer)
-        
-        // Create checkmark image
-        let checkmarkImageView = UIImageView(image: UIImage(systemName: "checkmark"))
-        checkmarkImageView.tintColor = .white
-        checkmarkImageView.contentMode = .scaleAspectFit
-        checkmarkImageView.translatesAutoresizingMaskIntoConstraints = false
-        checkmarkContainer.addSubview(checkmarkImageView)
-        
-        // Create text label
-        let textLabel = UILabel()
-        textLabel.text = "Shower detected"
-        textLabel.font = UIFont.systemFont(ofSize: 20, weight: .medium)
-        textLabel.textAlignment = .center
-        textLabel.textColor = .label
-        textLabel.translatesAutoresizingMaskIntoConstraints = false
-        successContainer.addSubview(textLabel)
-        
-        // Setup constraints
-        NSLayoutConstraint.activate([
-            overlayView.topAnchor.constraint(equalTo: view.topAnchor),
-            overlayView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            overlayView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            overlayView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            
-            successContainer.centerXAnchor.constraint(equalTo: overlayView.centerXAnchor),
-            successContainer.centerYAnchor.constraint(equalTo: overlayView.centerYAnchor),
-            successContainer.widthAnchor.constraint(equalToConstant: 200),
-            successContainer.heightAnchor.constraint(equalToConstant: 160),
-            
-            checkmarkContainer.centerXAnchor.constraint(equalTo: successContainer.centerXAnchor),
-            checkmarkContainer.topAnchor.constraint(equalTo: successContainer.topAnchor, constant: 20),
-            checkmarkContainer.widthAnchor.constraint(equalToConstant: 80),
-            checkmarkContainer.heightAnchor.constraint(equalToConstant: 80),
-            
-            checkmarkImageView.centerXAnchor.constraint(equalTo: checkmarkContainer.centerXAnchor),
-            checkmarkImageView.centerYAnchor.constraint(equalTo: checkmarkContainer.centerYAnchor),
-            checkmarkImageView.widthAnchor.constraint(equalToConstant: 40),
-            checkmarkImageView.heightAnchor.constraint(equalToConstant: 40),
-            
-            textLabel.centerXAnchor.constraint(equalTo: successContainer.centerXAnchor),
-            textLabel.bottomAnchor.constraint(equalTo: successContainer.bottomAnchor, constant: -20),
-            textLabel.leadingAnchor.constraint(equalTo: successContainer.leadingAnchor, constant: 16),
-            textLabel.trailingAnchor.constraint(equalTo: successContainer.trailingAnchor, constant: -16)
-        ])
-        
-        // Animate in
-        UIView.animate(withDuration: 0.3, delay: 0, options: [.curveEaseOut], animations: {
-            overlayView.alpha = 1
-            successContainer.alpha = 1
-            successContainer.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
-        }) { _ in
-            UIView.animate(withDuration: 0.2, animations: {
-                successContainer.transform = CGAffineTransform.identity
-            }) { _ in
-                // Auto dismiss after 2 seconds
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                    UIView.animate(withDuration: 0.3, animations: {
-                        overlayView.alpha = 0
-                        successContainer.transform = CGAffineTransform(scaleX: 0.8, y: 0.8)
-                    }) { _ in
-                        overlayView.removeFromSuperview()
-                    }
-                }
-            }
-        }
-        
-        // Add pulse animation to checkmark
-        let pulseAnimation = CABasicAnimation(keyPath: "transform.scale")
-        pulseAnimation.duration = 0.6
-        pulseAnimation.fromValue = 0.3
-        pulseAnimation.toValue = 1.0
-        pulseAnimation.timingFunction = CAMediaTimingFunction(name: .easeOut)
-        checkmarkContainer.layer.add(pulseAnimation, forKey: "pulse")
     }
     
     private func saveShowerForToday() {

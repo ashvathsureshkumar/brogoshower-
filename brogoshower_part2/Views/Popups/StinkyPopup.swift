@@ -39,7 +39,7 @@ class StinkyPopup {
         
         // Create text label
         let textLabel = UILabel()
-        textLabel.text = "No shower detected.\You fucking stink! 🦨"
+        textLabel.text = "No shower detected.You fucking stink! 🤮"
         textLabel.font = UIFont.systemFont(ofSize: 18, weight: .medium)
         textLabel.textAlignment = .center
         textLabel.textColor = .label
