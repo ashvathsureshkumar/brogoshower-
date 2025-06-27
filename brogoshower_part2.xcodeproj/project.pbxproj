@@ -356,6 +356,7 @@
 		};
 		AFF6FA312E050FE8006D57F8 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CEBA44822E0F57790068724E /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -419,6 +420,7 @@
 		};
 		AFF6FA322E050FE8006D57F8 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CEBA44822E0F57790068724E /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
