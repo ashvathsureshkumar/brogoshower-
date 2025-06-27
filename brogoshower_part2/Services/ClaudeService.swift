@@ -161,9 +161,9 @@ class ClaudeService {
     }
     
     private func getAPIKey() -> String {
-        return "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"
+        return Bundle.main.infoDictionary?["ANTHROPIC_API_KEY"] as? String ?? ""
     }
-    
+
     private func compressImageForClaude(_ image: UIImage) -> Data {
         // Target size: 4MB to stay well under Claude's 5MB limit
         let maxSizeBytes = 4 * 1024 * 1024 // 4MB

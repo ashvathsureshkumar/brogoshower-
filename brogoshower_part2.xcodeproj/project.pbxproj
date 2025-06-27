@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		AF6F44492E0517B20013AEF1 /* OpenAI in Frameworks */ = {isa = PBXBuildFile; productRef = AF6F44482E0517B20013AEF1 /* OpenAI */; };
+		CEBA43D12E0F4AA70068724E /* Config.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CEBA43D02E0F4A9F0068724E /* Config.xcconfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -31,6 +32,7 @@
 		AFF6FA052E050FE7006D57F8 /* brogoshower_part2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = brogoshower_part2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFF6FA1B2E050FE8006D57F8 /* brogoshower_part2Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = brogoshower_part2Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFF6FA252E050FE8006D57F8 /* brogoshower_part2UITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = brogoshower_part2UITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		CEBA43D02E0F4A9F0068724E /* Config.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -93,6 +95,7 @@
 		AFF6F9FC2E050FE7006D57F8 = {
 			isa = PBXGroup;
 			children = (
+				CEBA43D02E0F4A9F0068724E /* Config.xcconfig */,
 				AFF6FA072E050FE7006D57F8 /* brogoshower_part2 */,
 				AFF6FA1E2E050FE8006D57F8 /* brogoshower_part2Tests */,
 				AFF6FA282E050FE8006D57F8 /* brogoshower_part2UITests */,
@@ -235,6 +238,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CEBA43D12E0F4AA70068724E /* Config.xcconfig in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -352,6 +356,7 @@
 		};
 		AFF6FA312E050FE8006D57F8 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CEBA43D02E0F4A9F0068724E /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -415,6 +420,7 @@
 		};
 		AFF6FA322E050FE8006D57F8 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = CEBA43D02E0F4A9F0068724E /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
